@@ -100,7 +100,7 @@ const PluginSettings: FunctionComponent<PluginSettingsProps> = ({data}) => {
                             <Col xs={24}>
                                 <Form.Item label="预览" style={{marginBottom: 0}}>
                                     <iframe
-                                        title="sitemap preview"
+                                        title="站点地图预览"
                                         src="/p/sitemap/widget?preview=true"
                                         style={{height: 48, width: 256, maxWidth: "100%", border: 0}}
                                     />

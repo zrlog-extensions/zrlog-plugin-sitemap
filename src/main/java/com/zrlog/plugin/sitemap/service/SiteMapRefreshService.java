@@ -29,7 +29,7 @@ public class SiteMapRefreshService implements IPluginService {
         try {
             new AutoRefreshSiteMapFileRunnable(session).run();
             result.setSuccess(true);
-            data.put("message", "Sitemap refresh completed");
+            data.put("message", "站点地图已刷新");
         } catch (Exception e) {
             result.setSuccess(false);
             result.setErrorMessage(e.getMessage());
