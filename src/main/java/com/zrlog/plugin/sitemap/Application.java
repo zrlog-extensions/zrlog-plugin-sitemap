@@ -6,6 +6,7 @@ import com.zrlog.plugin.render.SimpleTemplateRender;
 import com.zrlog.plugin.sitemap.controller.SiteMapController;
 import com.zrlog.plugin.sitemap.handle.AutoRefreshSiteMapFileRunnable;
 import com.zrlog.plugin.sitemap.handle.ConnectHandler;
+import com.zrlog.plugin.sitemap.service.SiteMapRefreshService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,13 +20,13 @@ public class Application {
      * @param args
      */
     public static void main(String[] args) throws IOException {
-        List<Class> classList = new ArrayList<>();
+        List<Class<?>> classList = new ArrayList<>();
         classList.add(SiteMapController.class);
-        new NioClient(sitemapConnectHandler, new SimpleTemplateRender(), new SiteMapClientActionHandler()).connectServer(args, classList, SiteMapPluginAction.class);
+        new NioClient(sitemapConnectHandler, new SimpleTemplateRender(), new SiteMapClientActionHandler())
+                .connectServer(args, classList, SiteMapPluginAction.class, SiteMapRefreshService.class);
     }
 
     public static AutoRefreshSiteMapFileRunnable getAutoRefreshSiteMapFile() {
         return sitemapConnectHandler.getAutoRefreshFeedFile();
     }
 }
-
