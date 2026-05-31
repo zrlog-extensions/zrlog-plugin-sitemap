@@ -32,8 +32,6 @@ const PluginSettings: FunctionComponent<PluginSettingsProps> = ({data}) => {
         margin: "0 auto",
         padding: 24,
         color: token.colorText,
-        background: token.colorBgLayout,
-        minHeight: "100vh",
         boxSizing: "border-box" as const,
     }), [token]);
 
