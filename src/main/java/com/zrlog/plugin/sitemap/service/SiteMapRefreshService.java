@@ -1,6 +1,7 @@
 package com.zrlog.plugin.sitemap.service;
 
 import com.zrlog.plugin.IOSession;
+import com.zrlog.plugin.api.Capability;
 import com.zrlog.plugin.api.IPluginService;
 import com.zrlog.plugin.api.ScheduledCapability;
 import com.zrlog.plugin.api.Service;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service("sitemap.refreshSitemap")
+@Capability(key = "sitemap.refreshSitemap", riskLevel = "medium")
 @ScheduledCapability(
         key = "sitemap.refreshSitemap",
         label = "刷新站点地图",
