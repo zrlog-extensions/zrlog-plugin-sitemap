@@ -3,10 +3,16 @@ package com.zrlog.plugin.sitemap;
 import com.zrlog.plugin.RunConstants;
 import com.zrlog.plugin.common.PluginNativeImageUtils;
 import com.zrlog.plugin.sitemap.controller.SiteMapController;
+import com.zrlog.plugin.sitemap.vo.ArticleFeedResponse;
+import com.zrlog.plugin.sitemap.vo.SiteMapApiResponse;
+import com.zrlog.plugin.sitemap.vo.SiteMapConfig;
+import com.zrlog.plugin.sitemap.vo.SiteMapPageData;
+import com.zrlog.plugin.sitemap.vo.WebsiteKeyRequest;
 import com.zrlog.plugin.type.RunType;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 
 public class GraalvmAgentApplication {
@@ -21,6 +27,14 @@ public class GraalvmAgentApplication {
         //Application.nativeAgent = true;
         PluginNativeImageUtils.exposeController(Collections.singletonList(SiteMapController.class));
         PluginNativeImageUtils.usedGsonObject();
+        PluginNativeImageUtils.gsonNativeAgentByClazz(Arrays.asList(
+                ArticleFeedResponse.class,
+                ArticleFeedResponse.ArticlePage.class,
+                ArticleFeedResponse.ArticleEntry.class,
+                SiteMapApiResponse.class,
+                SiteMapConfig.class,
+                SiteMapPageData.class,
+                WebsiteKeyRequest.class));
         Application.main(args);
 
     }

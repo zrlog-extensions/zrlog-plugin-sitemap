@@ -9,11 +9,15 @@ import com.zrlog.plugin.data.codec.MsgPacket;
 import com.zrlog.plugin.data.codec.MsgPacketStatus;
 import com.zrlog.plugin.sitemap.Application;
 import com.zrlog.plugin.sitemap.handle.AutoRefreshSiteMapFileRunnable;
+import com.zrlog.plugin.sitemap.vo.SiteMapApiResponse;
+import com.zrlog.plugin.sitemap.vo.SiteMapConfig;
+import com.zrlog.plugin.sitemap.vo.SiteMapPageData;
+import com.zrlog.plugin.sitemap.vo.WebsiteKeyRequest;
 import com.zrlog.plugin.type.ActionType;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class SiteMapController {
 
@@ -31,10 +35,9 @@ public class SiteMapController {
     }
 
     public void update() {
-        session.sendMsg(new MsgPacket(requestInfo.simpleParam(), ContentType.JSON, MsgPacketStatus.SEND_REQUEST, IdUtil.getInt(), ActionType.SET_WEBSITE.name()), msgPacket -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("success", true);
-            session.sendMsg(new MsgPacket(map, ContentType.JSON, MsgPacketStatus.RESPONSE_SUCCESS, requestPacket.getMsgId(), requestPacket.getMethodStr()));
+        session.sendMsg(new MsgPacket(normalizeConfig(configFromParams()), ContentType.JSON,
+                MsgPacketStatus.SEND_REQUEST, IdUtil.getInt(), ActionType.SET_WEBSITE.name()), msgPacket -> {
+            response(SiteMapApiResponse.success(Boolean.TRUE));
             Application.getAutoRefreshSiteMapFile().doFeed();
             session.sendJsonMsg(new HashMap<>(), ActionType.REFRESH_CACHE.name(), IdUtil.getInt(), MsgPacketStatus.SEND_REQUEST);
         });
@@ -56,18 +59,10 @@ public class SiteMapController {
     }
 
     public void widget() {
-        Map<String, Object> keyMap = new HashMap<>();
-        keyMap.put("key", CONFIG_KEYS);
-        session.sendJsonMsg(keyMap, ActionType.GET_WEBSITE.name(), IdUtil.getInt(), MsgPacketStatus.SEND_REQUEST, msgPacket -> {
-            Map map = gson.fromJson(msgPacket.getDataStr(), Map.class);
-            if (Objects.isNull(map.get("uriPath"))) {
-                map.put("uriPath", AutoRefreshSiteMapFileRunnable.DEFAULT_URI_PATH);
-            }
-            if (Objects.isNull(map.get("sitemapText"))) {
-                map.put("sitemapText", "");
-            }
-            map.put("target", requestInfo.simpleParam().containsKey("preview") ? "_blank" : "_top");
-            session.responseHtml("/widget", map, requestPacket.getMethodStr(), requestPacket.getMsgId());
+        session.sendJsonMsg(WebsiteKeyRequest.of(CONFIG_KEYS), ActionType.GET_WEBSITE.name(), IdUtil.getInt(), MsgPacketStatus.SEND_REQUEST, msgPacket -> {
+            Map<String, Object> data = configMap(normalizeConfig(gson.fromJson(msgPacket.getDataStr(), SiteMapConfig.class)));
+            data.put("target", hasParam("preview") ? "_blank" : "_top");
+            session.responseHtml("/widget", data, requestPacket.getMethodStr(), requestPacket.getMsgId());
         });
     }
 
@@ -75,39 +70,65 @@ public class SiteMapController {
         session.responseXmlStr(Application.getAutoRefreshSiteMapFile().doFeed(), requestPacket.getMethodStr(), requestPacket.getMsgId());
     }
 
-    private Map<String, Object> pageData() {
-        Map<String, Object> data = new HashMap<>();
-        data.put("dark", isDarkMode());
-        data.put("colorPrimary", getAdminColorPrimary());
-        data.put("plugin", session.getPlugin());
-        data.put("config", loadConfig());
-        return successMap(data);
+    private SiteMapApiResponse<SiteMapPageData> pageData() {
+        SiteMapPageData data = new SiteMapPageData();
+        data.setDark(isDarkMode());
+        data.setColorPrimary(getAdminColorPrimary());
+        data.setPlugin(session.getPlugin());
+        data.setConfig(loadConfig());
+        return SiteMapApiResponse.success(data);
     }
 
-    private Map<String, Object> loadConfig() {
-        Map<String, Object> keyMap = new HashMap<>();
-        keyMap.put("key", CONFIG_KEYS);
-        Map response = session.getResponseSync(ContentType.JSON, keyMap, ActionType.GET_WEBSITE, Map.class);
-        Map<String, Object> config = response == null ? new HashMap<>() : new HashMap<>(response);
-        if (Objects.isNull(config.get("uriPath"))) {
-            config.put("uriPath", AutoRefreshSiteMapFileRunnable.DEFAULT_URI_PATH);
-        }
-        if (Objects.isNull(config.get("sitemapText"))) {
-            config.put("sitemapText", "");
-        }
-        config.put("version", session.getPlugin().getVersion());
+    private SiteMapConfig loadConfig() {
+        SiteMapConfig config = session.getResponseSync(ContentType.JSON, WebsiteKeyRequest.of(CONFIG_KEYS), ActionType.GET_WEBSITE, SiteMapConfig.class);
+        config = normalizeConfig(config);
+        config.setVersion(session.getPlugin().getVersion());
         return config;
     }
 
-    private Map<String, Object> successMap(Object data) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("success", true);
-        map.put("data", data);
+    private SiteMapConfig configFromParams() {
+        SiteMapConfig config = new SiteMapConfig();
+        config.setUriPath(paramValue("uriPath"));
+        config.setSitemapText(paramValue("sitemapText"));
+        return config;
+    }
+
+    private SiteMapConfig normalizeConfig(SiteMapConfig config) {
+        if (config == null) {
+            config = new SiteMapConfig();
+        }
+        if (config.getUriPath() == null || config.getUriPath().trim().isEmpty()) {
+            config.setUriPath(AutoRefreshSiteMapFileRunnable.DEFAULT_URI_PATH);
+        }
+        if (config.getSitemapText() == null) {
+            config.setSitemapText("");
+        }
+        return config;
+    }
+
+    private Map<String, Object> configMap(SiteMapConfig config) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("uriPath", config.getUriPath());
+        map.put("sitemapText", config.getSitemapText());
+        if (config.getVersion() != null) {
+            map.put("version", config.getVersion());
+        }
         return map;
     }
 
-    private void response(Map<String, Object> map) {
-        session.sendMsg(ContentType.JSON, map, requestPacket.getMethodStr(), requestPacket.getMsgId(), MsgPacketStatus.RESPONSE_SUCCESS);
+    private void response(Object data) {
+        session.sendMsg(ContentType.JSON, data, requestPacket.getMethodStr(), requestPacket.getMsgId(), MsgPacketStatus.RESPONSE_SUCCESS);
+    }
+
+    private boolean hasParam(String key) {
+        return requestInfo.getParam() != null && requestInfo.getParam().containsKey(key);
+    }
+
+    private String paramValue(String key) {
+        if (requestInfo.getParam() == null || requestInfo.getParam().get(key) == null || requestInfo.getParam().get(key).length == 0) {
+            return "";
+        }
+        return requestInfo.getParam().get(key)[0];
     }
 
     private boolean isDarkMode() {

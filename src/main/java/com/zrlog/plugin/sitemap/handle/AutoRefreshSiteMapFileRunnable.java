@@ -6,6 +6,7 @@ import com.zrlog.plugin.common.LoggerUtil;
 import com.zrlog.plugin.common.model.BlogRunTime;
 import com.zrlog.plugin.data.codec.ContentType;
 import com.zrlog.plugin.sitemap.service.FeedService;
+import com.zrlog.plugin.sitemap.vo.SiteMapConfig;
 import com.zrlog.plugin.sitemap.vo.SiteMapResultInfo;
 import com.zrlog.plugin.type.ActionType;
 
@@ -41,8 +42,10 @@ public class AutoRefreshSiteMapFileRunnable implements Runnable {
         uploadedFeedVersion = feed.getVersion();
         Map<String, Object> keyMap = new HashMap<>();
         keyMap.put("key", "uriPath");
-        Map responseMap = ioSession.getResponseSync(ContentType.JSON, keyMap, ActionType.GET_WEBSITE, Map.class);
-        String uriPath = Objects.requireNonNullElse((String) responseMap.get("uriPath"), DEFAULT_URI_PATH);
+        SiteMapConfig config = ioSession.getResponseSync(ContentType.JSON, keyMap, ActionType.GET_WEBSITE, SiteMapConfig.class);
+        String uriPath = config == null || config.getUriPath() == null || config.getUriPath().trim().isEmpty()
+                ? DEFAULT_URI_PATH
+                : config.getUriPath();
         String path = ioSession.getResponseSync(ContentType.JSON, new HashMap<>(), ActionType.BLOG_RUN_TIME, BlogRunTime.class).getPath();
         File sitemapFile = new File(path + uriPath);
         sitemapFile.getParentFile().mkdirs();

@@ -5,6 +5,7 @@ import com.zrlog.plugin.IOSession;
 import com.zrlog.plugin.common.model.PublicInfo;
 import com.zrlog.plugin.data.codec.ContentType;
 import com.zrlog.plugin.sitemap.vo.Article;
+import com.zrlog.plugin.sitemap.vo.ArticleFeedResponse;
 import com.zrlog.plugin.sitemap.vo.SiteMapResultInfo;
 import com.zrlog.plugin.type.ActionType;
 
@@ -29,14 +30,12 @@ public class FeedService {
             HttpClient httpClient = HttpClient.newBuilder().build();
             HttpRequest httpRequest = HttpRequest.newBuilder().uri(URI.create(publicInfo.getApiHomeUrl() + "/api/article?size=50000&feed=true")).build();
             HttpResponse<byte[]> send = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofByteArray());
-            Map<String, Object> info = new Gson().fromJson(new String(send.body()), Map.class);
-            Map<String, Object> data = (Map<String, Object>) info.get("data");
-            List<Map<String, Object>> rows = (List<Map<String, Object>>) data.get("rows");
+            ArticleFeedResponse info = new Gson().fromJson(new String(send.body()), ArticleFeedResponse.class);
             List<Article> articles = new ArrayList<>();
-            rows.forEach(e -> {
-                String pubDate = (String) e.get("releaseTime");
-                articles.add(new Article((String) e.get("title"), "https:" + e.get("url"),
-                        Objects.requireNonNullElse((String) e.get("content"), ""), pubDate, ((Double) e.get("id")).longValue() + ""));
+            info.rows().forEach(e -> {
+                String pubDate = e.getReleaseTime();
+                articles.add(new Article(e.getTitle(), "https:" + e.getUrl(),
+                        Objects.requireNonNullElse(e.getContent(), ""), pubDate, e.idText()));
             });
             //httpClient.close();
             return SiteMapGenerator.generateSitemap(publicInfo.getTitle(), publicInfo.getHomeUrl(), "", articles);
