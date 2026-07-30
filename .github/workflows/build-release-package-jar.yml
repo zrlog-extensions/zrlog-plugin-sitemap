@@ -5,15 +5,11 @@ on:
       - main
 jobs:
   build:
-    name: plugin relase package ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: plugin release package self-hosted
+    runs-on: self-hosted
     concurrency:
-      group: deploy-on-${{ matrix.os }}-jar   # 同一个 group 的任务会排队执行
+      group: deploy-on-self-hosted-jar   # 同一个 group 的任务会排队执行
       cancel-in-progress: true # 取消前一个任务
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        architecture: [ amd64 ]
     steps:
       - uses: actions/checkout@v3
         with:

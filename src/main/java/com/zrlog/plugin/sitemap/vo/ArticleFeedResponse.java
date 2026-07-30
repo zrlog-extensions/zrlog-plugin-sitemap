@@ -38,6 +38,7 @@ public class ArticleFeedResponse {
         private Number id;
         private String title;
         private String url;
+        private String noSchemeUrl;
         private String content;
         private String releaseTime;
 
@@ -63,6 +64,14 @@ public class ArticleFeedResponse {
 
         public void setUrl(String url) {
             this.url = url;
+        }
+
+        public String getNoSchemeUrl() {
+            return noSchemeUrl;
+        }
+
+        public void setNoSchemeUrl(String noSchemeUrl) {
+            this.noSchemeUrl = noSchemeUrl;
         }
 
         public String getContent() {
