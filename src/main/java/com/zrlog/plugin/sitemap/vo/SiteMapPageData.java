@@ -1,8 +1,12 @@
 package com.zrlog.plugin.sitemap.vo;
 
+import com.zrlog.plugin.data.codec.PluginAppearance;
+
 import com.zrlog.plugin.message.Plugin;
 
 public class SiteMapPageData {
+
+    private PluginAppearance appearance;
 
     private boolean dark;
     private String colorPrimary;
@@ -39,5 +43,8 @@ public class SiteMapPageData {
 
     public void setConfig(SiteMapConfig config) {
         this.config = config;
+    }
+    public void setAppearance(PluginAppearance appearance) {
+        this.appearance = appearance;
     }
 }

@@ -7,6 +7,7 @@ import com.zrlog.plugin.data.codec.ContentType;
 import com.zrlog.plugin.data.codec.HttpRequestInfo;
 import com.zrlog.plugin.data.codec.MsgPacket;
 import com.zrlog.plugin.data.codec.MsgPacketStatus;
+import com.zrlog.plugin.data.codec.PluginAppearance;
 import com.zrlog.plugin.sitemap.Application;
 import com.zrlog.plugin.sitemap.handle.AutoRefreshSiteMapFileRunnable;
 import com.zrlog.plugin.sitemap.vo.SiteMapApiResponse;
@@ -49,7 +50,7 @@ public class SiteMapController {
 
     public void index() {
         Map<String, Object> data = new HashMap<>();
-        data.put("theme", isDarkMode() ? "dark" : "light");
+
         data.put("data", gson.toJson(pageData()));
         session.responseHtml("/templates/index", data, requestPacket.getMethodStr(), requestPacket.getMsgId());
     }
@@ -72,6 +73,7 @@ public class SiteMapController {
 
     private SiteMapApiResponse<SiteMapPageData> pageData() {
         SiteMapPageData data = new SiteMapPageData();
+        data.setAppearance(PluginAppearance.from(requestInfo));
         data.setDark(isDarkMode());
         data.setColorPrimary(getAdminColorPrimary());
         data.setPlugin(session.getPlugin());

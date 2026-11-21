@@ -1,5 +1,8 @@
-import {Button, Col, Divider, Form, Grid, Input, Row, Space, Typography, message, theme} from "antd";
-import {SaveOutlined} from "@ant-design/icons";
+import Input from "@zrlog/ui/antd/Input";
+import Typography from "@zrlog/ui/antd/Typography";
+import {useUiApp} from "@zrlog/ui/feedback";
+import SaveOutlined from "@zrlog/ui/icons/save";
+import { Button, Col, Divider, Form, Grid, Row, Space, theme } from "antd";
 import axios from "axios";
 import {FunctionComponent, useEffect, useMemo, useState} from "react";
 import {PluginInfoResponse, StandardResponse} from "../index";
@@ -20,7 +23,7 @@ const PluginSettings: FunctionComponent<PluginSettingsProps> = ({data}) => {
     const isCompact = !screens.md;
     const [form] = Form.useForm<SitemapFormValues>();
     const [loading, setLoading] = useState(false);
-    const [messageApi, contextHolder] = message.useMessage();
+    const {message: messageApi} = useUiApp();
 
     useEffect(() => {
         form.setFieldsValue({
@@ -67,7 +70,6 @@ const PluginSettings: FunctionComponent<PluginSettingsProps> = ({data}) => {
 
     return (
         <div style={shellStyle}>
-            {contextHolder}
             <Space direction="vertical" size={20} style={{width: "100%"}}>
                 <div style={{display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap"}}>
                     <Space direction="vertical" size={4}>
